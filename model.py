@@ -503,8 +503,34 @@ def gcn_layer_forward(node_features, src, dst, weight, bias=None, num_nodes=None
 
     return out
 
-# Step 17 - init_gcn_parameters (not yet solved)
-# TODO: implement
+# Step 17 - init_gcn_parameters
+def init_gcn_parameters(in_dim, out_dim, with_bias=True, seed=None):
+    """Initialize GCN parameters with Glorot-style uniform initialization.
+
+    Args:
+        in_dim: Input feature dimension.
+        out_dim: Output feature dimension.
+        with_bias: Whether to include a zero-initialized bias.
+        seed: Optional PyTorch RNG seed.
+
+    Returns:
+        Dictionary containing 'weight' and optionally 'bias'.
+    """
+    if seed is not None:
+        torch.manual_seed(seed)
+
+    a = (6.0 / (in_dim + out_dim)) ** 0.5
+
+    weight = torch.empty(in_dim, out_dim).uniform_(-a, a)
+
+    params = {
+        'weight': weight,
+    }
+
+    if with_bias:
+        params['bias'] = torch.zeros(out_dim)
+
+    return params
 
 # Step 18 - gcn_stack_forward (not yet solved)
 # TODO: implement
