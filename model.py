@@ -1564,8 +1564,15 @@ def train_graph_regressor(params, graphs, forward_fn, num_epochs, lr, batch_size
 
     return history, params
 
-# Step 44 - representation_similarity (not yet solved)
-# TODO: implement
+# Step 44 - representation_similarity
+def representation_similarity(features_a, features_b):
+    """Return mean cosine similarity between corresponding node representations."""
+    eps = 1e-8
+
+    a_norm = features_a / features_a.norm(dim=1, keepdim=True).clamp_min(eps)
+    b_norm = features_b / features_b.norm(dim=1, keepdim=True).clamp_min(eps)
+
+    return (a_norm * b_norm).sum(dim=1).mean().item()
 
 # Step 45 - oversmoothing_diagnostic (not yet solved)
 # TODO: implement
