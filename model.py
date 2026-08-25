@@ -609,8 +609,53 @@ def gat_attention_logits(node_features, src, dst, attn_src, attn_dst, weight):
 
     return logits, transformed
 
-# Step 20 - gat_masked_neighbor_softmax (not yet solved)
-# TODO: implement
+# Step 20 - gat_masked_neighbor_softmax
+def gat_masked_neighbor_softmax(logits, dst, num_nodes):
+    """Numerically stable softmax of attention logits over each dest node's neighbors.
+
+    Args:
+        logits: FloatTensor of shape (E,) with one unnormalized attention logit per edge.
+        dst: LongTensor of shape (E,) with destination node index for each edge.
+        num_nodes: int, number of nodes N in the graph.
+
+    Returns:
+        FloatTensor of shape (E,) with attention coefficients that sum to 1 over
+        each destination's incoming edges.
+    """
+    # Find the maximum logit for each destination node.
+    max_logits = torch.full(
+        (num_nodes,),
+        float("-inf"),
+        dtype=logits.dtype,
+        device=logits.device,
+    )
+
+    max_logits.scatter_reduce_(
+        0,
+        dst,
+        logits,
+        reduce="amax",
+        include_self=True,
+    )
+
+    # Subtract the per-destination maximum for numerical stability.
+    stabilized = logits - max_logits[dst]
+
+    # Exponentiate the stabilized logits.
+    exp_logits = torch.exp(stabilized)
+
+    # Sum exponentials over incoming edges for each destination.
+    denom = torch.zeros(
+        num_nodes,
+        dtype=logits.dtype,
+        device=logits.device,
+    )
+    denom.scatter_add_(0, dst, exp_logits)
+
+    # Normalize each edge by its destination's sum.
+    attention = exp_logits / denom[dst]
+
+    return attention
 
 # Step 21 - gat_head_forward (not yet solved)
 # TODO: implement
