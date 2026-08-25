@@ -1078,8 +1078,24 @@ def node_classification_head(node_embeddings, weight, bias=None):
 
     return logits
 
-# Step 31 - graph_regression_head (not yet solved)
-# TODO: implement
+# Step 31 - graph_regression_head
+def graph_regression_head(graph_embeddings, weight, bias=None):
+    """Map pooled graph embeddings to regression predictions via a linear head.
+
+    Args:
+        graph_embeddings: FloatTensor of shape (B, D).
+        weight: FloatTensor of shape (out_dim, D).
+        bias: optional FloatTensor of shape (out_dim,).
+
+    Returns:
+        FloatTensor of shape (B, out_dim).
+    """
+    predictions = graph_embeddings @ weight.T
+
+    if bias is not None:
+        predictions = predictions + bias
+
+    return predictions
 
 # Step 32 - generate_sbm_graph (not yet solved)
 # TODO: implement
