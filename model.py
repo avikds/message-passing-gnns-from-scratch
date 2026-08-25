@@ -1008,8 +1008,30 @@ def global_sum_pool(node_features, batch_index, num_graphs=None):
         num_graphs,
     )
 
-# Step 28 - global_max_pool (not yet solved)
-# TODO: implement
+# Step 28 - global_max_pool
+def global_max_pool(node_features, batch_index, num_graphs=None):
+    """Globally max-pool node features into one graph-level vector per graph.
+
+    Args:
+        node_features: FloatTensor of shape (N, F).
+        batch_index: LongTensor of shape (N,) mapping nodes to graph ids.
+        num_graphs: optional int B. If None, inferred from batch_index.
+
+    Returns:
+        FloatTensor of shape (B, F), with elementwise maxima per graph.
+        Empty graphs are represented by -inf.
+    """
+    if num_graphs is None:
+        if batch_index.numel() == 0:
+            num_graphs = 0
+        else:
+            num_graphs = int(batch_index.max().item()) + 1
+
+    return scatter_max_to_nodes(
+        node_features,
+        batch_index,
+        num_graphs,
+    )
 
 # Step 29 - global_mean_max_pool (not yet solved)
 # TODO: implement
