@@ -936,8 +936,51 @@ def gat_stack_forward(
 
     return h, all_layer_outputs
 
-# Step 26 - global_mean_pool (not yet solved)
-# TODO: implement
+# Step 26 - global_mean_pool
+def global_mean_pool(node_features, batch_index, num_graphs=None):
+    """Globally mean-pool node features into one graph-level vector per graph.
+
+    Args:
+        node_features: FloatTensor of shape (N, F) with one feature row per node.
+        batch_index: LongTensor of shape (N,) mapping each node to a graph id in
+            {0, ..., B-1}.
+        num_graphs: Optional int B. If None, inferred as batch_index.max() + 1.
+
+    Returns:
+        FloatTensor of shape (B, F); row b is the mean of node features with
+        batch_index == b.
+    """
+    if num_graphs is None:
+        if batch_index.numel() == 0:
+            num_graphs = 0
+        else:
+            num_graphs = int(batch_index.max().item()) + 1
+
+    # Sum node features for each graph using the existing scatter helper.
+    summed = scatter_sum_to_nodes(
+        node_features,
+        batch_index,
+        num_graphs,
+    )
+
+    # Count the number of nodes belonging to each graph.
+    counts = torch.zeros(
+        num_graphs,
+        dtype=node_features.dtype,
+        device=node_features.device,
+    )
+    ones = torch.ones(
+        batch_index.numel(),
+        dtype=node_features.dtype,
+        device=node_features.device,
+    )
+    counts.index_add_(0, batch_index, ones)
+
+    # Divide by the number of nodes in each graph.
+    # Empty graphs remain zero vectors.
+    pooled = summed / counts.clamp_min(1).unsqueeze(-1)
+
+    return pooled
 
 # Step 27 - global_sum_pool (not yet solved)
 # TODO: implement
