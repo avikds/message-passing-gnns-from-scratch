@@ -200,8 +200,45 @@ def scatter_sum_to_nodes(edge_features, dst, num_nodes):
 
     return node_features
 
-# Step 7 - scatter_mean_to_nodes (not yet solved)
-# TODO: implement
+# Step 7 - scatter_mean_to_nodes
+def scatter_mean_to_nodes(edge_features, dst, num_nodes):
+    """Scatter-mean edge features onto destination nodes.
+
+    Args:
+        edge_features: Tensor of shape (E, F).
+        dst: LongTensor of shape (E,) with destination node indices.
+        num_nodes: int, number of nodes N.
+
+    Returns:
+        Tensor of shape (N, F), with zero vectors for nodes with no incoming edges.
+    """
+    # Sum edge features at each destination node.
+    node_sum = torch.zeros(
+        num_nodes,
+        edge_features.size(1),
+        dtype=edge_features.dtype,
+        device=edge_features.device,
+    )
+    node_sum.index_add_(0, dst, edge_features)
+
+    # Count incoming edges for each node.
+    counts = torch.zeros(
+        num_nodes,
+        dtype=edge_features.dtype,
+        device=edge_features.device,
+    )
+    ones = torch.ones(
+        dst.size(0),
+        dtype=edge_features.dtype,
+        device=edge_features.device,
+    )
+    counts.index_add_(0, dst, ones)
+
+    # Divide by the number of incoming edges.
+    # Clamp avoids division by zero for isolated nodes.
+    node_mean = node_sum / counts.clamp_min(1).unsqueeze(1)
+
+    return node_mean
 
 # Step 8 - scatter_max_to_nodes (not yet solved)
 # TODO: implement
