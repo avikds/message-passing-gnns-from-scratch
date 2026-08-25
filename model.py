@@ -1366,8 +1366,21 @@ def cross_entropy_loss(logits, targets):
 
     return loss.mean()
 
-# Step 38 - mse_loss (not yet solved)
-# TODO: implement
+# Step 38 - mse_loss
+def mse_loss(predictions, targets):
+    """Compute mean squared error between predictions and targets.
+
+    Args:
+        predictions: FloatTensor of shape [B] or [B, 1].
+        targets: FloatTensor of shape [B] or [B, 1].
+
+    Returns:
+        0-dimensional FloatTensor containing the mean squared error.
+    """
+    predictions = predictions.reshape(-1)
+    targets = targets.reshape(-1)
+
+    return ((predictions - targets) ** 2).mean()
 
 # Step 39 - accuracy_metric (not yet solved)
 # TODO: implement
