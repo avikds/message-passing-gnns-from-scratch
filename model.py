@@ -240,8 +240,33 @@ def scatter_mean_to_nodes(edge_features, dst, num_nodes):
 
     return node_mean
 
-# Step 8 - scatter_max_to_nodes (not yet solved)
-# TODO: implement
+# Step 8 - scatter_max_to_nodes
+def scatter_max_to_nodes(edge_features, dst, num_nodes):
+    """Scatter-max edge features onto destination nodes.
+
+    Args:
+        edge_features: Tensor of shape (E, F).
+        dst: LongTensor of shape (E,) giving destination node indices.
+        num_nodes: int, number of nodes N.
+
+    Returns:
+        Tensor of shape (N, F), containing elementwise maxima.
+        Nodes with no incoming edges contain -inf.
+    """
+    # Initialize every node-feature entry to -inf.
+    node_max = torch.full(
+        (num_nodes, edge_features.size(1)),
+        float("-inf"),
+        dtype=edge_features.dtype,
+        device=edge_features.device,
+    )
+
+    # Scatter elementwise maxima onto destination nodes.
+    for i in range(edge_features.size(0)):
+        node = dst[i]
+        node_max[node] = torch.maximum(node_max[node], edge_features[i])
+
+    return node_max
 
 # Step 9 - compute_messages (not yet solved)
 # TODO: implement
