@@ -319,8 +319,19 @@ def aggregate_messages(messages, dst, num_nodes, aggr='sum'):
             "Expected one of {'sum', 'mean', 'max'}."
         )
 
-# Step 11 - update_node_features (not yet solved)
-# TODO: implement
+# Step 11 - update_node_features
+def update_node_features(node_features, aggregated, update_fn):
+    """Update node features using aggregated neighborhood messages.
+
+    Args:
+        node_features: Tensor of shape (N, F) containing current node features.
+        aggregated: Tensor of shape (N, M) containing aggregated messages.
+        update_fn: Callable(node_features, aggregated) -> updated features.
+
+    Returns:
+        Tensor containing the updated node features.
+    """
+    return update_fn(node_features, aggregated)
 
 # Step 12 - message_passing_layer (not yet solved)
 # TODO: implement
