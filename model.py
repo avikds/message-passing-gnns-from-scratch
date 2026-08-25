@@ -1192,8 +1192,71 @@ def build_node_classification_dataset(
 
     return dataset
 
-# Step 34 - generate_molecule_like_graph (not yet solved)
-# TODO: implement
+# Step 34 - generate_molecule_like_graph
+def generate_molecule_like_graph(
+    num_nodes,
+    num_node_features,
+    edge_prob=0.3,
+    seed=0,
+):
+    """Synthesize one molecule-like graph for graph-level regression."""
+    if seed is not None:
+        torch.manual_seed(seed)
+
+    # IID standard-normal node features.
+    x = torch.randn(num_nodes, num_node_features)
+
+    # Sample an undirected simple graph.
+    src_list = []
+    dst_list = []
+
+    for i in range(num_nodes):
+        for j in range(i + 1, num_nodes):
+            if torch.rand(()) < edge_prob:
+                # Store every undirected edge in both directions.
+                src_list.extend([i, j])
+                dst_list.extend([j, i])
+
+    if src_list:
+        edge_index = torch.tensor(
+            [src_list, dst_list],
+            dtype=torch.long,
+        )
+    else:
+        edge_index = torch.empty(
+            (2, 0),
+            dtype=torch.long,
+        )
+
+    # Compute node degrees.
+    degrees = torch.zeros(
+        num_nodes,
+        dtype=x.dtype,
+        device=x.device,
+    )
+
+    if edge_index.shape[1] > 0:
+        degrees.index_add_(
+            0,
+            edge_index[0],
+            torch.ones(
+                edge_index.shape[1],
+                dtype=x.dtype,
+                device=x.device,
+            ),
+        )
+
+    # Mean feature value for each node.
+    node_feature_means = x.mean(dim=1)
+
+    # Target: mean_v [deg(v) * mean(x[v])].
+    y = (degrees * node_feature_means).mean()
+
+    return {
+        "x": x,
+        "edge_index": edge_index,
+        "y": y,
+    }
 
 # Step 35 - build_graph_regression_dataset (not yet solved)
 # TODO: implement
