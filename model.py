@@ -1347,8 +1347,24 @@ def collate_graph_batch(graphs):
         "y": y,
     }
 
-# Step 37 - cross_entropy_loss (not yet solved)
-# TODO: implement
+# Step 37 - cross_entropy_loss
+def cross_entropy_loss(logits, targets):
+    """Compute mean multi-class cross-entropy loss.
+
+    Args:
+        logits: FloatTensor of shape (M, C) with unnormalized class scores.
+        targets: LongTensor of shape (M,) containing class indices.
+
+    Returns:
+        0-dimensional FloatTensor containing the mean cross-entropy loss.
+    """
+    log_probs = torch.log_softmax(logits, dim=-1)
+    loss = -log_probs.gather(
+        dim=1,
+        index=targets.unsqueeze(1),
+    ).squeeze(1)
+
+    return loss.mean()
 
 # Step 38 - mse_loss (not yet solved)
 # TODO: implement
