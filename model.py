@@ -1382,8 +1382,19 @@ def mse_loss(predictions, targets):
 
     return ((predictions - targets) ** 2).mean()
 
-# Step 39 - accuracy_metric (not yet solved)
-# TODO: implement
+# Step 39 - accuracy_metric
+def accuracy_metric(logits, targets):
+    """Return the fraction of correctly classified examples.
+
+    Args:
+        logits: FloatTensor of shape (M, C).
+        targets: LongTensor of shape (M,).
+
+    Returns:
+        Python float in [0, 1].
+    """
+    predictions = logits.argmax(dim=-1)
+    return (predictions == targets).float().mean().item()
 
 # Step 40 - mae_metric (not yet solved)
 # TODO: implement
