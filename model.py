@@ -1404,8 +1404,43 @@ def mae_metric(predictions, targets):
 
     return torch.abs(predictions - targets).mean().item()
 
-# Step 41 - gnn_train_step (not yet solved)
-# TODO: implement
+# Step 41 - gnn_train_step
+def gnn_train_step(params, batch, forward_fn, loss_fn, lr):
+    """Run one SGD training step and update parameters in-place.
+
+    Args:
+        params: Dict of parameter tensors with requires_grad=True.
+        batch: Batch dictionary containing targets under key 'y'.
+        forward_fn: Callable(params, batch) -> predictions.
+        loss_fn: Callable(predictions, targets) -> scalar loss.
+        lr: SGD learning rate.
+
+    Returns:
+        Dict with:
+            'loss': Python float
+            'params': the same updated parameter dictionary
+    """
+    predictions = forward_fn(params, batch)
+    loss = loss_fn(predictions, batch["y"])
+
+    # Clear stale gradients.
+    for param in params.values():
+        if param.grad is not None:
+            param.grad.zero_()
+
+    # Backpropagate through the functional model.
+    loss.backward()
+
+    # In-place SGD update without tracking the update in autograd.
+    with torch.no_grad():
+        for param in params.values():
+            if param.grad is not None:
+                param -= lr * param.grad
+
+    return {
+        "loss": loss.item(),
+        "params": params,
+    }
 
 # Step 42 - train_node_classifier (not yet solved)
 # TODO: implement
