@@ -162,8 +162,18 @@ def symmetric_normalize_edge_weights(src, dst, num_nodes, edge_weight=None):
 
     return normalized_weights
 
-# Step 5 - gather_source_node_features (not yet solved)
-# TODO: implement
+# Step 5 - gather_source_node_features
+def gather_source_node_features(node_features, src):
+    """Return edge-aligned source feature rows from node_features.
+
+    Args:
+        node_features (Tensor): Node feature matrix of shape (N, F).
+        src (LongTensor): Source node indices of shape (E,).
+
+    Returns:
+        Tensor: Source features aligned with edges, shape (E, F).
+    """
+    return node_features[src]
 
 # Step 6 - scatter_sum_to_nodes (not yet solved)
 # TODO: implement
