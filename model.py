@@ -716,8 +716,50 @@ def gat_head_forward(node_features, src, dst, weight, attn_src, attn_dst, bias=N
 
     return head_out, attn_coeffs
 
-# Step 22 - merge_gat_heads (not yet solved)
-# TODO: implement
+# Step 22 - merge_gat_heads
+def merge_gat_heads(head_outputs, mode='concat'):
+    """Merge multi-head GAT outputs into one node-feature tensor.
+
+    Args:
+        head_outputs: list/tuple of tensors [N, F], or a stacked tensor [H, N, F].
+        mode: 'concat' or 'mean'.
+
+    Returns:
+        Tensor of shape [N, H*F] for concat or [N, F] for mean.
+    """
+    if mode not in ('concat', 'mean'):
+        raise ValueError(
+            f"Unsupported merge mode: {mode!r}. "
+            "Expected 'concat' or 'mean'."
+        )
+
+    # Convert a list/tuple of heads to [H, N, F].
+    if isinstance(head_outputs, (list, tuple)):
+        if len(head_outputs) == 0:
+            raise ValueError("head_outputs cannot be empty.")
+
+        stacked = torch.stack(head_outputs, dim=0)
+    elif isinstance(head_outputs, torch.Tensor):
+        if head_outputs.dim() != 3:
+            raise ValueError(
+                "A stacked head tensor must have shape [H, N, F]."
+            )
+
+        stacked = head_outputs
+    else:
+        raise TypeError(
+            "head_outputs must be a list, tuple, or Tensor."
+        )
+
+    if mode == 'concat':
+        # [H, N, F] -> [N, H, F] -> [N, H*F]
+        return stacked.permute(1, 0, 2).reshape(
+            stacked.size(1),
+            -1,
+        )
+
+    # [H, N, F] -> [N, F]
+    return stacked.mean(dim=0)
 
 # Step 23 - gat_layer_forward (not yet solved)
 # TODO: implement
