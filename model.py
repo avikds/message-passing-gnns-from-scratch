@@ -1442,8 +1442,76 @@ def gnn_train_step(params, batch, forward_fn, loss_fn, lr):
         "params": params,
     }
 
-# Step 42 - train_node_classifier (not yet solved)
-# TODO: implement
+# Step 42 - train_node_classifier
+def train_node_classifier(
+    params,
+    dataset,
+    forward_fn,
+    num_epochs,
+    lr,
+    mask_key='train_mask',
+):
+    """Train a functional node-classification GNN on masked nodes.
+
+    Args:
+        params: Dict of parameter tensors with requires_grad=True.
+        dataset: Single graph dictionary containing x, edge_index, y,
+            and a boolean mask under mask_key.
+        forward_fn: Callable(params, x, edge_index) -> node logits.
+        num_epochs: Number of SGD training epochs.
+        lr: SGD learning rate.
+        mask_key: Key containing the boolean training mask.
+
+    Returns:
+        Dict containing:
+            'history': list of per-epoch loss/accuracy dictionaries.
+            'params': updated parameter dictionary.
+    """
+    history = []
+
+    x = dataset["x"]
+    edge_index = dataset["edge_index"]
+    targets = dataset["y"]
+    mask = dataset[mask_key]
+
+    for _ in range(num_epochs):
+        # Forward pass on the complete graph.
+        logits = forward_fn(params, x, edge_index)
+
+        # Select only the masked training nodes.
+        masked_logits = logits[mask]
+        masked_targets = targets[mask]
+
+        # Cross-entropy objective on training nodes only.
+        loss = cross_entropy_loss(masked_logits, masked_targets)
+
+        # Clear old gradients.
+        for param in params.values():
+            if param.grad is not None:
+                param.grad.zero_()
+
+        # Backpropagation.
+        loss.backward()
+
+        # SGD parameter update.
+        with torch.no_grad():
+            for param in params.values():
+                if param.grad is not None:
+                    param -= lr * param.grad
+
+        # Record metrics on the same masked nodes.
+        history.append({
+            "loss": loss.item(),
+            "accuracy": accuracy_metric(
+                masked_logits,
+                masked_targets,
+            ),
+        })
+
+    return {
+        "history": history,
+        "params": params,
+    }
 
 # Step 43 - train_graph_regressor (not yet solved)
 # TODO: implement
