@@ -1513,8 +1513,56 @@ def train_node_classifier(
         "params": params,
     }
 
-# Step 43 - train_graph_regressor (not yet solved)
-# TODO: implement
+# Step 43 - train_graph_regressor
+def train_graph_regressor(params, graphs, forward_fn, num_epochs, lr, batch_size=8):
+    """Train a graph regressor over multiple epochs of mini-batches.
+
+    Args:
+        params: dict of trainable torch tensors.
+        graphs: list of graph dicts with keys x, edge_index, y.
+        forward_fn: callable(params, batch) -> predictions.
+        num_epochs: number of training epochs.
+        lr: learning rate for SGD updates.
+        batch_size: graphs per mini-batch (default 8).
+
+    Returns:
+        history: dict with 'loss' and 'mae' lists of per-epoch floats.
+        params: updated parameter dict.
+    """
+    history = {'loss': [], 'mae': []}
+
+    for _ in range(num_epochs):
+        epoch_losses = []
+
+        # Mini-batch SGD
+        for start in range(0, len(graphs), batch_size):
+            batch_graphs = graphs[start:start + batch_size]
+            batch = collate_graph_batch(batch_graphs)
+
+            result = gnn_train_step(
+                params,
+                batch,
+                forward_fn,
+                mse_loss,
+                lr,
+            )
+
+            params = result['params']
+            epoch_losses.append(result['loss'])
+
+        # Full-dataset evaluation for MAE
+        full_batch = collate_graph_batch(graphs)
+        with torch.no_grad():
+            predictions = forward_fn(params, full_batch)
+
+        history['loss'].append(
+            sum(epoch_losses) / len(epoch_losses) if epoch_losses else 0.0
+        )
+        history['mae'].append(
+            mae_metric(predictions, full_batch['y'])
+        )
+
+    return history, params
 
 # Step 44 - representation_similarity (not yet solved)
 # TODO: implement
