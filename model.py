@@ -1286,8 +1286,66 @@ def build_graph_regression_dataset(
 
     return dataset
 
-# Step 36 - collate_graph_batch (not yet solved)
-# TODO: implement
+# Step 36 - collate_graph_batch
+def collate_graph_batch(graphs):
+    """Combine variable-size graph dictionaries into one disconnected batch."""
+    if len(graphs) == 0:
+        return {
+            "x": torch.empty((0, 0)),
+            "edge_index": torch.empty((2, 0), dtype=torch.long),
+            "batch": torch.empty((0,), dtype=torch.long),
+            "y": torch.empty((0,), dtype=torch.float32),
+        }
+
+    x_list = []
+    edge_index_list = []
+    batch_list = []
+    y_list = []
+
+    node_offset = 0
+
+    for graph_id, graph in enumerate(graphs):
+        x = graph["x"]
+        edge_index = graph["edge_index"]
+
+        num_nodes = x.shape[0]
+
+        x_list.append(x)
+
+        # Shift local node indices into the global batched index space.
+        if edge_index.shape[1] > 0:
+            shifted_edges = edge_index + node_offset
+        else:
+            shifted_edges = edge_index.clone()
+
+        edge_index_list.append(shifted_edges)
+
+        # Assign every node in this graph its graph ID.
+        batch_list.append(
+            torch.full(
+                (num_nodes,),
+                graph_id,
+                dtype=torch.long,
+                device=x.device,
+            )
+        )
+
+        # Accept either a scalar tensor or a Python number.
+        y_list.append(torch.as_tensor(graph["y"], dtype=torch.float32))
+
+        node_offset += num_nodes
+
+    x = torch.cat(x_list, dim=0)
+    edge_index = torch.cat(edge_index_list, dim=1)
+    batch = torch.cat(batch_list, dim=0)
+    y = torch.stack(y_list, dim=0)
+
+    return {
+        "x": x,
+        "edge_index": edge_index,
+        "batch": batch,
+        "y": y,
+    }
 
 # Step 37 - cross_entropy_loss (not yet solved)
 # TODO: implement
