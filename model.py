@@ -811,8 +811,65 @@ def gat_layer_forward(node_features, src, dst, head_params, merge_mode='concat',
 
     return out, all_attn
 
-# Step 24 - init_gat_parameters (not yet solved)
-# TODO: implement
+# Step 24 - init_gat_parameters
+def init_gat_parameters(in_dim, out_dim, num_heads=1, with_bias=True, seed=None):
+    """Initialize multi-head GAT parameters with Glorot-style initialization.
+
+    Args:
+        in_dim: Input feature dimension.
+        out_dim: Output feature dimension per head.
+        num_heads: Number of attention heads.
+        with_bias: Whether to include a zero-initialized bias per head.
+        seed: Optional PyTorch RNG seed.
+
+    Returns:
+        List of parameter dictionaries, one per attention head.
+    """
+    if seed is not None:
+        torch.manual_seed(seed)
+
+    # Glorot bound for the linear weight matrix.
+    weight_bound = (6.0 / (in_dim + out_dim)) ** 0.5
+
+    # Glorot bound for each attention vector:
+    # fan_in = out_dim, fan_out = 1.
+    attn_bound = (6.0 / (out_dim + 1)) ** 0.5
+
+    heads = []
+
+    for _ in range(num_heads):
+        weight = torch.empty(
+            in_dim,
+            out_dim,
+            dtype=torch.float32,
+        ).uniform_(-weight_bound, weight_bound).requires_grad_()
+
+        attn_src = torch.empty(
+            out_dim,
+            dtype=torch.float32,
+        ).uniform_(-attn_bound, attn_bound).requires_grad_()
+
+        attn_dst = torch.empty(
+            out_dim,
+            dtype=torch.float32,
+        ).uniform_(-attn_bound, attn_bound).requires_grad_()
+
+        head = {
+            "weight": weight,
+            "attn_src": attn_src,
+            "attn_dst": attn_dst,
+        }
+
+        if with_bias:
+            head["bias"] = torch.zeros(
+                out_dim,
+                dtype=torch.float32,
+                requires_grad=True,
+            )
+
+        heads.append(head)
+
+    return heads
 
 # Step 25 - gat_stack_forward (not yet solved)
 # TODO: implement
