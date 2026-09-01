@@ -57,26 +57,6 @@ python scaffold.py
 - [x] **45.** oversmoothing_diagnostic
 - [x] **46.** mpnn_gnn_experiment
 
-## Results
+---
 
-```
-degrees: [2.0, 2.0, 2.0, 3.0]
-sym-norm weight mean: 0.4509
-gather/scatter shapes: (9, 6) (4, 6)
-MPNN layer out: (4, 6)
-GCN out: (4, 4)
-GAT (2-head concat) out: (4, 8) n_attn_heads: 2
-collated nodes: 30 pool: (4, 10)
-oversmoothing mean_similarity: 0.2627
-experiment result type: dict
-  gcn:
-    history: list
-    oversmoothing.mean_similarity: 0.2526
-  gat:
-    history: list
-    oversmoothing.mean_similarity: 0.4910
-  dataset_sizes:
-    N: int
-    E: int
-    C: int
-```
+Built on Deep-ML.
